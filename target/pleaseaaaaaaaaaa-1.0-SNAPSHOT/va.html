@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <form onsubmit="return false;">
+            <h2>INICIO DE SESIÓN 🌍</h2>
+            <label>Ingrese usuario: </label><br/>
+            <input type="text" id="user"><br>
+            <label>Ingrese contraseña: </label><br/>
+            <input type="password" id="pass"><br/>
+            <button id="btnIniciar">Iniciar</button>
+        </form>
+
+        <div id="g_id_onload"
+             data-client_id="896098254512-n137fs7r3ndqa4mvmfrtbktfpr9bcmt9.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin" data-type="standard"></div>
+
+        <script>
+            let btnIniciar = document.getElementById("btnIniciar");
+            btnIniciar.addEventListener("click", function () {
+                let user = document.getElementById("user").value;
+                let pass = document.getElementById("pass").value;
+
+                let url = `logueousuario?user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+
+                fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.resultado === "ok") {
+                                console.log(data.token);
+                                // Ejemplo:
+                                setCookie("token", data.token, 7);
+                                //alert("Inicio de sesión exitoso, todo esta bien");
+                                // Aquí podrías redirigir, por ejemplo:
+                                window.location.href = "./dist/pages/index.html";
+                            } else {
+                                alert("Usuario o contraseña incorrectos");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error al procesar la solicitud:", error);
+                        });
+            });
+
+      
+            function handleCredentialResponse(response) {
+                // Este token es JWT de Google que valida la identidad del usuario
+                const id_token = response.credential;
+
+                // Manda este token al backend para validarlo y crear tu JWT propio
+                fetch(`loggooglehans`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({id_token})
+                })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.resultado === 'ok') {
+                                setCookie("token", data.token, 7);
+                                window.location.href = "./dist/pages/index.html";
+                            } else {
+                                alert('Error en login con Google');
+                            }
+                        })
+                        .catch(err => console.error(err));
+            }
+            
+            // Crear una cookie llamada "usuario" con valor "Juan" que expira en 7 días
+            function setCookie(nombre, valor, dias) {
+                const fecha = new Date();
+                fecha.setTime(fecha.getTime() + (dias * 24 * 60 * 60 * 1000));
+                const expira = "expires=" + fecha.toUTCString();
+                document.cookie = nombre + "=" + valor + ";" + expira + ";path=/";
+            }
+
+        </script>
+    </body>
+</html>
